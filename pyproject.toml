@@ -1,3 +1,67 @@
+[build-system]
+requires = ["setuptools>=80", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Yamtrack"
+version = "0.24.9"
+authors = [{ "name" = "FuzzyGrumm" }]
+description = "A self hosted media tracker for movies, tv shows, anime, manga, video games and books."
+# TODO: ask in PR if -only or -or-later?
+license = "AGPL-3.0-only"
+license-files = [ "LICENSE" ]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "aiohttp~=3.13.2",
+  "apprise~=1.9.6",
+  "beautifulsoup4~=4.14.3",
+  "celery~=5.6.0",
+  "croniter~=6.0.0",
+  "defusedxml~=0.7.1",
+  "Django~=5.2.9",
+  "django-allauth[socialaccount]~=65.13.1",
+  "django-celery-beat~=2.8.1",
+  "django-celery-results~=2.6.0",
+  "django_debug_toolbar~=6.1.0",
+  "django-decorator-include~=3.3",
+  "django-health-check~=3.20.8",
+  "django-model-utils~=5.0.0",
+  "django-redis~=6.0.0",
+  "django-select2~=8.4.7",
+  "django-simple-history~=3.11.0",
+  "django-widget-tweaks~=1.5.0",
+  "gunicorn~=23.0.0",
+  "icalendar~=6.3.2",
+  "Pillow~=12.0.0",
+  "psycopg[binary,pool]~=3.3.2",
+  "python-decouple~=3.8",
+  "redis[hiredis]==7.1.0",
+  "requests~=2.32.5",
+  "requests-ratelimiter==0.7.0",
+  "unidecode~=1.4.0",
+]
+
+[dependency-groups]
+dev = [
+  { "include-group" = "testing" },
+  { "include-group" = "lint" },
+]
+
+testing = [
+  "coverage~=7.13.0",
+  "fakeredis~=2.32.1",
+  "pytest-django~=4.11.1",
+  "pytest-playwright~=0.7.2",
+  "tblib~=3.2.2",
+]
+
+lint = [
+  "djlint~=1.36.4",
+  "pre-commit~=4.5.1",
+  "ruff~=0.14.10",
+]
+
 [tool.ruff]
 target-version = "py312"
 extend-exclude = ["migrations"]
