@@ -1,5 +1,6 @@
 """Django settings for Yamtrack project."""
 
+import os
 import json
 import warnings
 import zoneinfo
@@ -26,6 +27,9 @@ REDIS_PREFIX = config("REDIS_PREFIX", default=None)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Use configured data directory or fall back to BASE_DIR
+DATA_DIR = Path(os.environ.get('DATA_DIR', BASE_DIR))
 
 
 def secret(key, default=undefined, **kwargs):
@@ -185,7 +189,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/stable/ref/settings/#databases
 
 # create db folder if it doesn't exist
-Path(BASE_DIR / "db").mkdir(parents=True, exist_ok=True)
+Path(DATA_DIR / "db").mkdir(parents=True, exist_ok=True)
 
 if config("DB_HOST", default=None):
     DATABASES = {
@@ -214,7 +218,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db" / "db.sqlite3",
+            "NAME": DATA_DIR / "db" / "db.sqlite3",
         },
     }
 
