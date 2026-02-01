@@ -1,3 +1,27 @@
+#
+### Build stage
+#
+FROM python:3.12-alpine3.21 AS builder
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Omit development dependencies
+ENV UV_NO_DEV=1
+# Compile source files to bytecode
+ENV UV_COMPILE_BYTECODE=1
+# Don't use the cache
+ENV UV_NO_CACHE=1
+
+WORKDIR /yamtrack
+
+COPY ./pyproject.toml ./uv.lock /yamtrack
+RUN uv sync --locked --no-install-project --no-editable
+
+COPY ./src /yamtrack/src
+RUN .venv/bin/python ./src/manage.py collectstatic --noinput
+
+#
+### Final image
+#
 FROM python:3.12-alpine3.21
 
 # https://stackoverflow.com/questions/58701233/docker-logs-erroneously-appears-empty-until-container-stops
@@ -8,18 +32,13 @@ ARG VERSION=dev
 # Set it as an environment variable
 ENV VERSION=$VERSION
 
-COPY ./requirements.txt /requirements.txt
 COPY ./entrypoint.sh /entrypoint.sh
 COPY ./supervisord.conf /etc/supervisord.conf
 COPY ./nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /yamtrack
 
-RUN apk add --no-cache nginx shadow \
-    && pip install --no-cache-dir -r /requirements.txt \
-    && pip install --no-cache-dir supervisor==4.2.5 \
-    && rm -rf /root/.cache /tmp/* \
-    && find /usr/local -type d -name __pycache__ -exec rm -rf {} + \
+RUN apk add --no-cache nginx shadow supervisor \
     && chmod +x /entrypoint.sh \
     # create user abc for later PUID/PGID mapping
     && useradd -U -M -s /bin/sh abc \
@@ -27,9 +46,10 @@ RUN apk add --no-cache nginx shadow \
     && mkdir -p /var/log/nginx \
     && mkdir -p /var/lib/nginx/body
 
-# Django app
-COPY src ./
-RUN python manage.py collectstatic --noinput
+# Copy from build stage and put executables in PATH
+COPY --from=builder --chown=abc:abc /yamtrack/src /yamtrack
+COPY --from=builder --chown=abc:abc /yamtrack/.venv /yamtrack/.venv
+ENV PATH="/yamtrack/.venv/bin:$PATH"
 
 EXPOSE 8000
 
